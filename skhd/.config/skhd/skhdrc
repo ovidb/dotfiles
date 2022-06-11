@@ -11,6 +11,7 @@
 # 5). hyper for changing window size
 # 6). meh for floating window operation
 
+
 # Mode declaration
 # 1) default: all keybindings are available
 # 2) passthrough: all keybindings are unavailable. (If some keybindings conflict with some application, we can turn off skhd)
@@ -41,8 +42,8 @@ cmd - return : kitty --single-instance -d ~ &> /dev/null
 #   - <, >: cycle through the windows in the stack backward or forward
 #   - /:    focus the recently-focused window in the stack
 #   - m:    focus the fullscreen window in the current workspace or cycle through all the fullscreen windows
-#lalt - k : yabai -m window --focus north
-#lalt - j : yabai -m window --focus south
+lalt - u : yabai -m window --focus north
+lalt - m : yabai -m window --focus south
 lalt - h : yabai -m window --focus west || \
              yabai -m window --focus $(yabai -m query --spaces --display west | jq '.[] | select(."is-visible" == true) | ."last-window"')
 lalt - l : yabai -m window --focus east || \
@@ -292,7 +293,7 @@ alt - 0 : yabai -m query --windows --space | \
           xargs -I{} yabai -m window {} --toggle zoom-fullscreen
 
 # Toggle window split type (horizontally or vertically in terms of its parent)
-hyper - s : yabai -m window --toggle split
+# hyper - s : yabai -m window --toggle split
 
 # Toggle window topmost (i.e., pin the window)
 hyper - p : yabai -m window --toggle topmost
@@ -317,14 +318,14 @@ hyper - b : yabai -m window --toggle border
 #      |----------------------
 #               space(+)
 
-hyper - u : yabai -m window --resize top:0:20          # top-
-hyper - 9 : yabai -m window --resize top:0:-20         # top+
-hyper - n : yabai -m window --resize bottom:0:-20      # bottom-
-hyper - space : yabai -m window --resize bottom:0:20   # bottom+
-hyper - j : yabai -m window --resize left:20:0         # left-
-hyper - h : yabai -m window --resize left:-20:0        # left+
-hyper - k : yabai -m window --resize right:-20:0       # right-
-hyper - l : yabai -m window --resize right:20:0        # right+
+meh - u : yabai -m window --resize top:0:20          # top-
+meh - y : yabai -m window --resize top:0:-20         # top+
+meh - n : yabai -m window --resize bottom:0:-20      # bottom-
+meh - m : yabai -m window --resize bottom:0:20   # bottom+
+meh - j : yabai -m window --resize left:20:0         # left-
+meh - h : yabai -m window --resize left:-20:0        # left+
+meh - k : yabai -m window --resize right:-20:0       # right-
+meh - l : yabai -m window --resize right:20:0        # right+
 
 # Balance size
 #   - 0: balance the sizes of the tiling windows in the curren workspace
@@ -334,24 +335,8 @@ hyper - 0 : yabai -m space --balance
 
 # ========== Floating window operations (FN + SHIFT) ========== {{{
 
-# Movement
-#   - k, j, h, l: move the current floating window to the up, down, left, or right by 20 pixels
-meh - k : yabai -m window --move rel:0:-20
-meh - j : yabai -m window --move rel:0:20
-meh - h : yabai -m window --move rel:-20:0
-meh - l : yabai -m window --move rel:20:0
-
-# Split screen
-meh - w : yabai -m window --grid 2:1:0:0:1:1   # upper-half
-meh - s : yabai -m window --grid 2:1:0:1:1:1   # lower-half
-meh - a : yabai -m window --grid 1:2:0:0:1:1   # left-half
-meh - d : yabai -m window --grid 1:2:1:0:1:1   # right-half
-
-# Fullscreen
-meh - m : yabai -m window --grid 1:1:0:0:1:1
 
 # Restore: centered and properly resized based on the display position (horizontally or vertically positioned)
 meh - 0 : read w h <<< $(echo $(yabai -m query --displays --display | jq .frame | jq '.w, .h')) && \
                  ( [ $w -gt $h ] && yabai -m window --grid 7:5:1:1:3:5 || yabai -m window --grid 5:10:1:1:8:2 )
 
-# }}} Floating window operations

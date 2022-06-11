@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+#
+# This script will inject the $FOCUS_HOSTS into $HOSTS_FILE 
+# To add the $FOCUS_HOSTS simply run:
+# `focus`
+# To remove the injected hosts run:
+# `focus off`
+
+# exit on first error
+set -e
+
+# Config 
+HOSTS_FILE=/etc/hosts
+FOCUS_HOSTS=~/.dotfiles/scripts/focus/hosts-focused
+
+# Utility functions
+
+# Will remove the lines found in the file passed as the first argument,
+# from the one passed as the second argument.
+#
+# usage: remove-lines lines-to-remove remove-from-this-file
+remove-lines() (
+  remove_lines="$1"
+  all_lines="$2"
+  tmp_file="$(mktemp)"
+  grep -Fvxf "$remove_lines" "$all_lines" > "$tmp_file"
+  chown "$(stat -f "%u:%g" $all_lines)" $tmp_file
+  chmod "$(stat -f "%Lp" $all_lines)" $tmp_file
+  mv "$tmp_file" "$all_lines"
+)
+
+function confirm() {
+  read -p "Do you want to continue? " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+    exit 1
+  fi 
+}
+
+flush-cache() {
+  sudo dscacheutil -flushcache 
+  sudo killall -HUP mDNSResponder 
+}
+
+focus-mode() {
+  sudo cat $FOCUS_HOSTS >> $HOSTS_FILE 
+  flush-cache
+}
+
+normal-mode() {
+  sudo remove-lines $FOCUSED_HOSTS $HOSTS_FILE
+  flush-cache
+}
+
+function print-hosts() {
+    cat $FOCUS_HOSTS 
+}
+
+function print-usage() {
+  echo "usage: focus [on|off]"
+}
+
+if [ $EUID != 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+if [[ $# -eq 0 ]] ; then
+  echo "Inject or remove following hosts from $HOSTS_FILE"
+  print-hosts
+  print-usage 
+  exit 0
+fi
+
+if [ $1 = "off" ]; then 
+  echo "Will remove the following hosts form $HOSTS_FILE" 
+  print-hosts
+  confirm 
+  remove-lines $FOCUS_HOSTS $HOSTS_FILE
+else 
+  echo "Will add the following hosts to $HOSTS_FILE"
+  print-hosts
+  confirm
+  cat $FOCUS_HOSTS >> $HOSTS_FILE
+fi
+echo Done
